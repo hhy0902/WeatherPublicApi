@@ -9,10 +9,12 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.weatherpublicapi.data.Item
 import com.example.weatherpublicapi.data.Weather
 import com.example.weatherpublicapi.databinding.ActivityMainBinding
@@ -52,6 +54,8 @@ class MainActivity : AppCompatActivity() {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         requestPermission()
 
+        bindViews()
+
     }
 
     fun getBaseTime(h : String, m : String) : String {
@@ -76,10 +80,19 @@ class MainActivity : AppCompatActivity() {
         return result
     }
 
+    @SuppressLint("NewApi")
+    private fun bindViews() {
+        binding.refresh.setOnRefreshListener {
+            Log.d("testt refresh","refresh")
+            fetchLocation()
+            connectRetrofit()
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     private fun connectRetrofit() {
         val url = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=JCrJa4%2F4eF07FKbnkSi7BDDUvnJXCE1CTiyt%2FfnxJ%2B7jewHaXTp5hrKQzOKdWYctQB%2B3a%2FHLuUHkTPq4hqrxvA%3D%3D&pageNo=1&numOfRows=1000&dataType=json&base_date=20220526&base_time=0500&nx=62&ny=125"
-        val url2 = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst?serviceKey=JCrJa4%2F4eF07FKbnkSi7BDDUvnJXCE1CTiyt%2FfnxJ%2B7jewHaXTp5hrKQzOKdWYctQB%2B3a%2FHLuUHkTPq4hqrxvA%3D%3D&pageNo=1&numOfRows=1000&dataType=json&base_date=20220526&base_time=0500&nx=62&ny=125"
+        val url2 = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst?serviceKey=JCrJa4%2F4eF07FKbnkSi7BDDUvnJXCE1CTiyt%2FfnxJ%2B7jewHaXTp5hrKQzOKdWYctQB%2B3a%2FHLuUHkTPq4hqrxvA%3D%3D&pageNo=1&numOfRows=1000&dataType=json&base_date=20220527&base_time=0500&nx=62&ny=125"
 
         val retrofit = Retrofit.Builder()
             .baseUrl("http://apis.data.go.kr/")
@@ -91,13 +104,21 @@ class MainActivity : AppCompatActivity() {
         val cal = Calendar.getInstance()
         val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HHmm"))
         var baseDate = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(cal.time) // 현재 날짜
+        var baseDateM = SimpleDateFormat("MM", Locale.getDefault()).format(cal.time) // 현재 날짜 m
+        var baseDateD = SimpleDateFormat("dd", Locale.getDefault()).format(cal.time) // 현재 날짜 d
+        var baseDateE = SimpleDateFormat("E", Locale.getDefault()).format(cal.time) // 현재 날짜 요일
         val timeH = SimpleDateFormat("HH", Locale.getDefault()).format(cal.time) // 현재 시각
         val timeM = SimpleDateFormat("mm", Locale.getDefault()).format(cal.time) // 현재 분
+        var timeA = SimpleDateFormat("a", Locale.getDefault()).format(cal.time) // am pm
         val baseTime = getBaseTime(timeH, timeM)
+
         if (timeH == "00" && baseTime == "2330") {
             cal.add(Calendar.DATE, -1).toString()
             baseDate = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(cal.time)
+            timeA = "오후"
         }
+
+        binding.date.text = "${baseDateM}월 ${baseDateD}일 ${baseDateE}요일"
 
         Log.d("testt date","$baseDate")
         Log.d("testt time","$time")
@@ -132,6 +153,8 @@ class MainActivity : AppCompatActivity() {
                             "REH" -> weatherArr[index].humidity = itemList.get(i).fcstValue.toString()     // 습도
                             "SKY" -> weatherArr[index].sky = itemList.get(i).fcstValue.toString()          // 하늘 상태
                             "T1H" -> weatherArr[index].temp = itemList.get(i).fcstValue.toString()         // 기온
+                            "VEC" -> weatherArr[index].windDirection = itemList.get(i).fcstValue.toString() // 풍향
+                            "WSD" -> weatherArr[index].windSpeed = itemList.get(i).fcstValue.toString() // 풍속
                             else -> continue
                         }
                         index++
@@ -142,7 +165,10 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     binding.recyvlerView.adapter = WeatherAdapter(weatherArr, LayoutInflater.from(this@MainActivity))
-                    binding.recyvlerView.layoutManager = LinearLayoutManager(this@MainActivity)
+                    binding.recyvlerView.layoutManager = LinearLayoutManager(this@MainActivity, LinearLayoutManager.HORIZONTAL, false)
+
+                    binding.progressBar.visibility = View.GONE
+                    binding.constraintlayout2.visibility = View.VISIBLE
 
                 }
             }
@@ -150,9 +176,7 @@ class MainActivity : AppCompatActivity() {
             override fun onFailure(call: Call<Weather>, t: Throwable) {
                 Log.d("testt fail","${t.message}")
             }
-
         })
-
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -187,13 +211,15 @@ class MainActivity : AppCompatActivity() {
             try {
                 lat = location.latitude
                 lon = location.longitude
-
                 Log.d("testt location ", "latitude : ${location.latitude}, longitude : ${location.longitude}")
 
+                geocoder = Geocoder(this, Locale.getDefault())
+                val address = geocoder.getFromLocation(lat, lon, 1)
+                Log.d("testt getAddressLine","${address[0].getAddressLine(0)}")
+                binding.address.text = "현재위치 : ${address[0].getAddressLine(0)}"
+
                 val convertXY = convertGRID_GPS(TO_GRID, lat, lon)
-
                 Log.d("testt xy convert", "x = ${convertXY.x}, y = ${convertXY.y}")
-
                 connectRetrofit()
 
             } catch (e : Exception) {
@@ -201,6 +227,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this,"error 발생 다시 시도", Toast.LENGTH_SHORT).show()
             } finally {
                 Log.d("testt finish","finish")
+                binding.refresh.isRefreshing = false
             }
         }
 

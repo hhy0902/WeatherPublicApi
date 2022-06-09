@@ -53,9 +53,18 @@ class MainActivity : AppCompatActivity() {
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         requestPermission()
-
         bindViews()
 
+    }
+
+
+    @SuppressLint("NewApi")
+    private fun bindViews() {
+        binding.refresh.setOnRefreshListener {
+            Log.d("testt refresh","refresh")
+            binding.constraintlayout.visibility = View.INVISIBLE
+            fetchLocation()
+        }
     }
 
     fun getBaseTime(h : String, m : String) : String {
@@ -78,15 +87,6 @@ class MainActivity : AppCompatActivity() {
         else result = h + "30"
 
         return result
-    }
-
-    @SuppressLint("NewApi")
-    private fun bindViews() {
-        binding.refresh.setOnRefreshListener {
-            Log.d("testt refresh","refresh")
-            fetchLocation()
-            connectRetrofit()
-        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -228,6 +228,7 @@ class MainActivity : AppCompatActivity() {
             } finally {
                 Log.d("testt finish","finish")
                 binding.refresh.isRefreshing = false
+                binding.constraintlayout.visibility = View.VISIBLE
             }
         }
 

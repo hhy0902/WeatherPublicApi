@@ -62,7 +62,8 @@ class MainActivity : AppCompatActivity() {
     private fun bindViews() {
         binding.refresh.setOnRefreshListener {
             Log.d("testt refresh","refresh")
-            binding.constraintlayout.visibility = View.INVISIBLE
+            binding.constraintlayout2.visibility = View.INVISIBLE
+            binding.recyvlerView.visibility = View.INVISIBLE
             fetchLocation()
         }
     }
@@ -228,7 +229,8 @@ class MainActivity : AppCompatActivity() {
             } finally {
                 Log.d("testt finish","finish")
                 binding.refresh.isRefreshing = false
-                binding.constraintlayout.visibility = View.VISIBLE
+                binding.constraintlayout2.visibility = View.VISIBLE
+                binding.recyvlerView.visibility = View.VISIBLE
             }
         }
 

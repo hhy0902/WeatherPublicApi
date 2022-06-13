@@ -110,13 +110,11 @@ class MainActivity : AppCompatActivity() {
         var baseDateE = SimpleDateFormat("E", Locale.getDefault()).format(cal.time) // 현재 날짜 요일
         val timeH = SimpleDateFormat("HH", Locale.getDefault()).format(cal.time) // 현재 시각
         val timeM = SimpleDateFormat("mm", Locale.getDefault()).format(cal.time) // 현재 분
-        var timeA = SimpleDateFormat("a", Locale.getDefault()).format(cal.time) // am pm
         val baseTime = getBaseTime(timeH, timeM)
 
         if (timeH == "00" && baseTime == "2330") {
             cal.add(Calendar.DATE, -1).toString()
             baseDate = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(cal.time)
-            timeA = "오후"
         }
 
         binding.date.text = "${baseDateM}월 ${baseDateD}일 ${baseDateE}요일"

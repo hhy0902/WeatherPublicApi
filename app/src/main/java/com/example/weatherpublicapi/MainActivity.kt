@@ -163,6 +163,23 @@ class MainActivity : AppCompatActivity() {
                         weatherArr[i].fcstTime = itemList?.get(i)?.fcstTime.toString()
                     }
 
+                    val mainSky = weatherArr.firstOrNull()?.sky
+                    val mainRain = weatherArr.firstOrNull()?.rainType
+                    val mainTemp = weatherArr.firstOrNull()?.temp
+                    Log.d("testt mainSky", "${mainSky}")
+                    Log.d("testt mainRain", "${mainRain}")
+                    Log.d("testt mainTemp", "${mainTemp}")
+
+                    when(mainSky) {
+                        "1" -> {
+                            Log.d("testt mainSky", "맑음")
+                        }
+                        "3" -> {
+                            Log.d("testt mainSky", "구름많음")
+                        }
+                        else -> Log.d("testt mainSky", "흐림")
+                    }
+
                     binding.recyvlerView.adapter = WeatherAdapter(weatherArr, LayoutInflater.from(this@MainActivity))
                     binding.recyvlerView.layoutManager = LinearLayoutManager(this@MainActivity, LinearLayoutManager.HORIZONTAL, false)
 

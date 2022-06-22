@@ -10,6 +10,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
@@ -92,8 +94,7 @@ class MainActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun connectRetrofit() {
-        val url = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=JCrJa4%2F4eF07FKbnkSi7BDDUvnJXCE1CTiyt%2FfnxJ%2B7jewHaXTp5hrKQzOKdWYctQB%2B3a%2FHLuUHkTPq4hqrxvA%3D%3D&pageNo=1&numOfRows=1000&dataType=json&base_date=20220526&base_time=0500&nx=62&ny=125"
-        val url2 = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst?serviceKey=JCrJa4%2F4eF07FKbnkSi7BDDUvnJXCE1CTiyt%2FfnxJ%2B7jewHaXTp5hrKQzOKdWYctQB%2B3a%2FHLuUHkTPq4hqrxvA%3D%3D&pageNo=1&numOfRows=1000&dataType=json&base_date=20220527&base_time=0500&nx=62&ny=125"
+        val url2 = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst?serviceKey=JCrJa4%2F4eF07FKbnkSi7BDDUvnJXCE1CTiyt%2FfnxJ%2B7jewHaXTp5hrKQzOKdWYctQB%2B3a%2FHLuUHkTPq4hqrxvA%3D%3D&pageNo=1&numOfRows=1000&dataType=json&base_date=20220622&base_time=0900&nx=62&ny=125"
 
         val retrofit = Retrofit.Builder()
             .baseUrl("http://apis.data.go.kr/")
@@ -117,7 +118,7 @@ class MainActivity : AppCompatActivity() {
             baseDate = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(cal.time)
         }
 
-        binding.date.text = "${baseDateM}월 ${baseDateD}일 ${baseDateE}요일"
+        //binding.date.text = "${baseDateM}월 ${baseDateD}일 ${baseDateE}요일"
 
         Log.d("testt date","$baseDate")
         Log.d("testt time","$time")
@@ -142,22 +143,31 @@ class MainActivity : AppCompatActivity() {
 
                     val weatherArr = arrayOf(ModelWeather(), ModelWeather(), ModelWeather(), ModelWeather(), ModelWeather(), ModelWeather())
 
-                    var index = 0
-                    val totalCount = response.body()?.response?.body?.totalCount!!.toInt()-1
 
-                    for(i in 0..totalCount) {
-                        index %= 6
-                        when(itemList?.get(i)?.category) {
-                            "PTY" -> weatherArr[index].rainType = itemList.get(i).fcstValue.toString()     // 강수 형태
-                            "REH" -> weatherArr[index].humidity = itemList.get(i).fcstValue.toString()     // 습도
-                            "SKY" -> weatherArr[index].sky = itemList.get(i).fcstValue.toString()          // 하늘 상태
-                            "T1H" -> weatherArr[index].temp = itemList.get(i).fcstValue.toString()         // 기온
-                            "VEC" -> weatherArr[index].windDirection = itemList.get(i).fcstValue.toString() // 풍향
-                            "WSD" -> weatherArr[index].windSpeed = itemList.get(i).fcstValue.toString() // 풍속
-                            else -> continue
+                    var index = 0
+
+                    try {
+                        val totalCount = response.body()?.response?.body?.totalCount!!.toInt()-1
+
+                        for(i in 0..totalCount) {
+                            index %= 6
+                            //index = index % 6
+                            when(itemList?.get(i)?.category) {
+                                "PTY" -> weatherArr[index].rainType = itemList.get(i).fcstValue.toString()     // 강수 형태
+                                "REH" -> weatherArr[index].humidity = itemList.get(i).fcstValue.toString()     // 습도
+                                "SKY" -> weatherArr[index].sky = itemList.get(i).fcstValue.toString()          // 하늘 상태
+                                "T1H" -> weatherArr[index].temp = itemList.get(i).fcstValue.toString()         // 기온
+                                "VEC" -> weatherArr[index].windDirection = itemList.get(i).fcstValue.toString() // 풍향
+                                "WSD" -> weatherArr[index].windSpeed = itemList.get(i).fcstValue.toString() // 풍속
+                                else -> continue
+                            }
+                            index++
                         }
-                        index++
+                    } catch (e : NullPointerException) {
+                        e.printStackTrace()
+                        Toast.makeText(this@MainActivity,"error가 발생했습니다. 잠시후 다시 시도해주세요", Toast.LENGTH_SHORT).show()
                     }
+
 
                     for(i in 0..5) {
                         weatherArr[i].fcstTime = itemList?.get(i)?.fcstTime.toString()
@@ -173,12 +183,23 @@ class MainActivity : AppCompatActivity() {
                     when(mainSky) {
                         "1" -> {
                             Log.d("testt mainSky", "맑음")
+                            binding.mainImage.setImageResource(R.drawable.sunny)
+                            binding.skyStatus.text = "맑음"
                         }
                         "3" -> {
                             Log.d("testt mainSky", "구름많음")
+                            binding.mainImage.setImageResource(R.drawable.cloudy)
+                            binding.skyStatus.text = "구름많음"
                         }
-                        else -> Log.d("testt mainSky", "흐림")
+                        else -> {
+                            Log.d("testt mainSky", "흐림")
+                            binding.mainImage.setImageResource(R.drawable.cloud)
+                            binding.skyStatus.text = "흐림"
+                        }
                     }
+
+
+                    binding.temp.text = "${mainTemp}℃"
 
                     binding.recyvlerView.adapter = WeatherAdapter(weatherArr, LayoutInflater.from(this@MainActivity))
                     binding.recyvlerView.layoutManager = LinearLayoutManager(this@MainActivity, LinearLayoutManager.HORIZONTAL, false)
@@ -191,6 +212,11 @@ class MainActivity : AppCompatActivity() {
 
             override fun onFailure(call: Call<Weather>, t: Throwable) {
                 Log.d("testt fail","${t.message}")
+                binding.constraintlayout2.visibility = INVISIBLE
+                binding.progressBar.visibility = INVISIBLE
+                binding.errorTextView.visibility = VISIBLE
+
+
             }
         })
     }
@@ -232,7 +258,18 @@ class MainActivity : AppCompatActivity() {
                 geocoder = Geocoder(this, Locale.getDefault())
                 val address = geocoder.getFromLocation(lat, lon, 1)
                 Log.d("testt getAddressLine","${address[0].getAddressLine(0)}")
-                binding.address.text = "현재위치 : ${address[0].getAddressLine(0)}"
+
+                Log.d("testt getAddressLine","${address[0].thoroughfare}")
+                Log.d("testt getAddressLine","${address[0].subLocality}")
+
+                val gu = address[0].subLocality
+                var dong = address[0].thoroughfare
+
+                if (dong == null) {
+                    dong = ""
+                }
+                //binding.address.text = "${address[0].getAddressLine(0)}"
+                binding.address.text = "${gu} ${dong}"
 
                 val convertXY = convertGRID_GPS(TO_GRID, lat, lon)
                 Log.d("testt xy convert", "x = ${convertXY.x}, y = ${convertXY.y}")

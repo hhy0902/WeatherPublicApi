@@ -67,12 +67,21 @@ val layoutInflater: LayoutInflater) : RecyclerView.Adapter<WeatherAdapter.ViewHo
             "4" -> {
                 holder.sky.text = "하늘상태 : 흐림"
                 holder.image.setImageResource(R.drawable.cloud)
+
             }
             else -> holder.sky.text = "하늘상태 : 몰?루"
         }
         //holder.sky.text = itemList.get(position).sky
         when(itemList.get(position).rainType) {
-            "1" -> holder.rain.text = "강수형태 : 비"
+            "1" -> {
+                holder.rain.text = "강수형태 : 비"
+                //holder.image.setImageResource(R.drawable.rain)
+            }
+            "2" -> holder.rain.text = "강수형태 : 비/눈"
+            "3" -> holder.rain.text = "강수형태 : 눈"
+            "5" -> holder.rain.text = "강수형태 : 빗방울"
+            "6" -> holder.rain.text = "강수형태 : 빗방울눈날림"
+            "7" -> holder.rain.text = "강수형태 : 눈날림"
             else -> holder.rain.text = "강수형태 : 없음"
         }
         holder.humidity.text = "습도 : ${itemList.get(position).humidity}%"

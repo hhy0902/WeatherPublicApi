@@ -190,13 +190,24 @@ class MainActivity : AppCompatActivity() {
                             Log.d("testt mainSky", "구름많음")
                             binding.mainImage.setImageResource(R.drawable.cloudy)
                             binding.skyStatus.text = "구름많음"
+
+                            if (mainRain?.toInt() == 1) {
+                                binding.skyStatus.text = "구름많음 / 비"
+                            }
                         }
                         else -> {
                             Log.d("testt mainSky", "흐림")
                             binding.mainImage.setImageResource(R.drawable.cloud)
                             binding.skyStatus.text = "흐림"
+
+                            if (mainRain?.toInt() == 1) {
+                                binding.skyStatus.text = "흐림 / 비"
+                                binding.mainImage.setImageResource(R.drawable.rain)
+                            }
                         }
                     }
+
+
 
 
                     binding.temp.text = "${mainTemp}℃"
